@@ -1,0 +1,8 @@
+[
+  {"name": "standing", "settings": {"initial_speed": 0.0}},
+  {"name": "nominal", "settings": {}},
+  {"name": "low_friction", "settings": {"static_friction": 0.04, "dynamic_friction": 0.02}},
+  {"name": "reduced_torque_conversion", "settings": {"torque_conversion": 6.0}},
+  {"name": "higher_initial_speed", "settings": {"initial_speed": 1.0}},
+  {"name": "nominal_repeat", "settings": {}}
+]

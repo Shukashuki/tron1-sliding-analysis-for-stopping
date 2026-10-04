@@ -1,0 +1,90 @@
+{
+  "settings": {
+    "initial_speed": 0.5,
+    "static_friction": 0.8,
+    "dynamic_friction": 0.6,
+    "torque_conversion": 12.0,
+    "torque_limit": 12.0,
+    "no_load_speed": 100.0,
+    "shaft_resistance": 0.0,
+    "brake_at": 1.0,
+    "deceleration": 0.8,
+    "duration": 8.0
+  },
+  "termination": "completed",
+  "stable_stop": true,
+  "brake_x_m": 0.5000154376029968,
+  "stop_time_after_brake_s": 2.015,
+  "signed_stop_distance_m": 0.11863714456558228,
+  "final_displacement_after_brake_m": 0.1564117670059204,
+  "max_excursion_after_brake_m": 0.27058202028274536,
+  "distance_definition": "signed_stop_distance is displacement at first confirmed stop; max_excursion is greatest absolute travel from brake position, including overshoot; final_displacement uses trial endpoint",
+  "max_abs_slip_speed_mps": 0.04734305010200934,
+  "max_supported_slip_after_brake_mps": 0.04734305010200934,
+  "max_abs_pitch_deg": 7.472303708210962,
+  "samples": 1601,
+  "physics_hz": 200,
+  "stop_criterion": "0.5 s: axle and wheel surface speeds <0.05 m/s, COM pitch and base roll <10 deg, both wheel normal proxies >1 N; full trial completes",
+  "slip_definition": "v_axle_x - radius * world_angular_velocity_y; upright-wheel approximation",
+  "normal_force_evidence": "net world-Z link contact force proxy, not ground-only contact force",
+  "controller": "fixed-leg implicit PD + COM-state LQR with braking reference; no learned policy",
+  "root_pose_prescribed_during_trial": false,
+  "joint_names": [
+    "abad_L_Joint",
+    "abad_R_Joint",
+    "hip_L_Joint",
+    "hip_R_Joint",
+    "knee_L_Joint",
+    "knee_R_Joint",
+    "wheel_L_Joint",
+    "wheel_R_Joint"
+  ],
+  "LQR_gain": [
+    [
+      -12.55223837163275,
+      -20.920815731950437,
+      -130.02678696985936,
+      -27.960706451698353
+    ]
+  ],
+  "case_name": "nominal_repeat",
+  "ui_checks": {},
+  "wheel_material_runtime": [
+    [
+      [
+        0.800000011920929,
+        0.6000000238418579,
+        0.0
+      ]
+    ],
+    [
+      [
+        0.800000011920929,
+        0.6000000238418579,
+        0.0
+      ]
+    ]
+  ],
+  "ground_collision": "native infinite PhysX plane at z=0",
+  "brake_trigger_time_s": 1.0,
+  "collision_material_paths": [
+    "/World/TRON1/base_Link/collisions",
+    "/World/TRON1/abad_L_Link/collisions",
+    "/World/TRON1/hip_L_Link/collisions",
+    "/World/TRON1/knee_L_Link/collisions",
+    "/World/TRON1/wheel_L_Link/collisions",
+    "/World/TRON1/abad_R_Link/collisions",
+    "/World/TRON1/hip_R_Link/collisions",
+    "/World/TRON1/knee_R_Link/collisions",
+    "/World/TRON1/wheel_R_Link/collisions",
+    "/World/Ground/collisionPlane"
+  ],
+  "material_readback": {
+    "static": 0.800000011920929,
+    "dynamic": 0.6000000238418579
+  },
+  "asset_sha256": "5c6dc532474650d5aa7f815cc4417069550b9bedabd543ab7e871ccefc08b374",
+  "script_sha256": "1f5c7944bb3fe70574830255e4ccf177e5ed67ba789733b957841aa24102679a",
+  "core_sha256": "789f0b5b945cd30cce9e8f41e364616050427f0b6e6bce0b6d472314bd0de5c9",
+  "effective_physics_dt": 0.005
+}

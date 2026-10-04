@@ -1,0 +1,151 @@
+{
+  "engine": "Isaac Sim 4.5 / PhysX, Windows, RTX 3060 Ti",
+  "scope": "one deterministic run per setting plus one repeated nominal run; controller development validation",
+  "cases": [
+    {
+      "case_name": "standing",
+      "settings": {
+        "initial_speed": 0.0,
+        "static_friction": 0.8,
+        "dynamic_friction": 0.6,
+        "torque_conversion": 12.0,
+        "torque_limit": 12.0,
+        "no_load_speed": 100.0,
+        "shaft_resistance": 0.0,
+        "brake_at": 1.0,
+        "deceleration": 0.8,
+        "duration": 8.0
+      },
+      "termination": "completed",
+      "stable_stop": true,
+      "signed_stop_distance_m": 0.00012693266762653366,
+      "stop_time_after_brake_s": 0.5,
+      "max_excursion_after_brake_m": 0.0001349091689917259,
+      "final_displacement_after_brake_m": -0.00011569863272598013,
+      "max_supported_slip_after_brake_mps": 0.00047529414061499254,
+      "max_abs_pitch_deg": 0.05465111608401157,
+      "samples": 1601
+    },
+    {
+      "case_name": "nominal",
+      "settings": {
+        "initial_speed": 0.5,
+        "static_friction": 0.8,
+        "dynamic_friction": 0.6,
+        "torque_conversion": 12.0,
+        "torque_limit": 12.0,
+        "no_load_speed": 100.0,
+        "shaft_resistance": 0.0,
+        "brake_at": 1.0,
+        "deceleration": 0.8,
+        "duration": 8.0
+      },
+      "termination": "completed",
+      "stable_stop": true,
+      "signed_stop_distance_m": 0.11863714456558228,
+      "stop_time_after_brake_s": 2.015,
+      "max_excursion_after_brake_m": 0.27058202028274536,
+      "final_displacement_after_brake_m": 0.1564117670059204,
+      "max_supported_slip_after_brake_mps": 0.04734305010200934,
+      "max_abs_pitch_deg": 7.472303708210962,
+      "samples": 1601
+    },
+    {
+      "case_name": "low_friction",
+      "settings": {
+        "initial_speed": 0.5,
+        "static_friction": 0.04,
+        "dynamic_friction": 0.02,
+        "torque_conversion": 12.0,
+        "torque_limit": 12.0,
+        "no_load_speed": 100.0,
+        "shaft_resistance": 0.0,
+        "brake_at": 1.0,
+        "deceleration": 0.8,
+        "duration": 8.0
+      },
+      "termination": "fallen",
+      "stable_stop": false,
+      "signed_stop_distance_m": null,
+      "stop_time_after_brake_s": null,
+      "max_excursion_after_brake_m": 0.6003139019012451,
+      "final_displacement_after_brake_m": 0.6003139019012451,
+      "max_supported_slip_after_brake_mps": 7.216708647581402,
+      "max_abs_pitch_deg": 45.309653190661585,
+      "samples": 315
+    },
+    {
+      "case_name": "reduced_torque_conversion",
+      "settings": {
+        "initial_speed": 0.5,
+        "static_friction": 0.8,
+        "dynamic_friction": 0.6,
+        "torque_conversion": 6.0,
+        "torque_limit": 12.0,
+        "no_load_speed": 100.0,
+        "shaft_resistance": 0.0,
+        "brake_at": 1.0,
+        "deceleration": 0.8,
+        "duration": 8.0
+      },
+      "termination": "completed",
+      "stable_stop": true,
+      "signed_stop_distance_m": 0.13089412450790405,
+      "stop_time_after_brake_s": 3.2649999999999997,
+      "max_excursion_after_brake_m": 0.27669769525527954,
+      "final_displacement_after_brake_m": 0.15535038709640503,
+      "max_supported_slip_after_brake_mps": 0.0008112665925617546,
+      "max_abs_pitch_deg": 9.178037463563278,
+      "samples": 1601
+    },
+    {
+      "case_name": "higher_initial_speed",
+      "settings": {
+        "initial_speed": 1.0,
+        "static_friction": 0.8,
+        "dynamic_friction": 0.6,
+        "torque_conversion": 12.0,
+        "torque_limit": 12.0,
+        "no_load_speed": 100.0,
+        "shaft_resistance": 0.0,
+        "brake_at": 1.0,
+        "deceleration": 0.8,
+        "duration": 8.0
+      },
+      "termination": "completed",
+      "stable_stop": true,
+      "signed_stop_distance_m": 0.5572504997253418,
+      "stop_time_after_brake_s": 2.615,
+      "max_excursion_after_brake_m": 0.7309315204620361,
+      "final_displacement_after_brake_m": 0.6253266334533691,
+      "max_supported_slip_after_brake_mps": 0.04870895999541647,
+      "max_abs_pitch_deg": 7.472418435819357,
+      "samples": 1601
+    },
+    {
+      "case_name": "nominal_repeat",
+      "settings": {
+        "initial_speed": 0.5,
+        "static_friction": 0.8,
+        "dynamic_friction": 0.6,
+        "torque_conversion": 12.0,
+        "torque_limit": 12.0,
+        "no_load_speed": 100.0,
+        "shaft_resistance": 0.0,
+        "brake_at": 1.0,
+        "deceleration": 0.8,
+        "duration": 8.0
+      },
+      "termination": "completed",
+      "stable_stop": true,
+      "signed_stop_distance_m": 0.11863714456558228,
+      "stop_time_after_brake_s": 2.015,
+      "max_excursion_after_brake_m": 0.27058202028274536,
+      "final_displacement_after_brake_m": 0.1564117670059204,
+      "max_supported_slip_after_brake_mps": 0.04734305010200934,
+      "max_abs_pitch_deg": 7.472303708210962,
+      "samples": 1601
+    }
+  ],
+  "nominal_repeat_csv_identical": true
+}
