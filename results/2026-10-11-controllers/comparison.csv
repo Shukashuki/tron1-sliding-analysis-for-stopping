@@ -1,0 +1,5 @@
+case,controller,stable_stop,termination,signed_stop_distance_m,max_excursion_after_brake_m,stop_time_after_brake_s,max_supported_slip_after_brake_mps,max_abs_pitch_deg
+nominal_tracking,lqr_tracking,True,completed,0.11863714456558228,0.27058202028274536,2.015,0.04734305010200934,7.472303708210962
+nominal_no_position,lqr_no_position,True,completed,0.15927714109420776,0.2702776789665222,1.81,0.04736422008669028,6.957826942925221
+low_friction_tracking,lqr_tracking,False,fallen,,0.6003139019012451,,7.216708647581402,45.309653190661585
+low_friction_no_position,lqr_no_position,False,fallen,,0.6041925549507141,,7.216652806952021,45.61588246373633

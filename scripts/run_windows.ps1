@@ -4,6 +4,7 @@ param(
     [string]$OutputDir = '',
     [string]$Config = '',
     [string]$Suite = '',
+    [string]$Controller = 'lqr_tracking',
     [switch]$Headless,
     [switch]$AutoRun,
     [switch]$ExitAfterTrial,
@@ -24,6 +25,7 @@ foreach ($name in @('scripts', 'assets', 'config', 'launch_stopping.cmd')) {
 }
 if (-not $OutputDir) { $OutputDir = Join-Path 'D:\tron1-stopping\runs' (Get-Date -Format 'yyyyMMdd-HHmmss') }
 $simArgs = @((Join-Path $WorkDir 'scripts\stopping_lab.py'), '--output-dir', $OutputDir)
+$simArgs += @('--controller', $Controller)
 if ($Config) { $simArgs += @('--config', $Config) }
 if ($Suite) { $simArgs += @('--suite', $Suite) }
 if ($Headless) { $simArgs += '--headless' }

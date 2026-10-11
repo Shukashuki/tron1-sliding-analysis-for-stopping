@@ -11,6 +11,7 @@ from dataclasses import asdict
 
 from build_scene import build_scene, ROOT, DEFAULT_ASSET
 from stopping_core import Settings, reference, motor_torque, slip_metrics, summarize
+from stopping_controllers import CONTROLLERS, Observation, Reference, create_controller, torque_to_command
 
 _app = None
 
@@ -25,6 +26,7 @@ def main():
     parser.add_argument("--auto-run", action="store_true")
     parser.add_argument("--exit-after-trial", action="store_true")
     parser.add_argument("--suite", type=Path, help="Run sequential parameter overrides in one Isaac session")
+    parser.add_argument("--controller", choices=CONTROLLERS, default="lqr_tracking")
     parser.add_argument("--ui-check", action="store_true", help="Exercise pause/resume and manual brake callbacks in the GUI")
     args = parser.parse_args()
     cfg = Settings(**json.loads(args.config.read_text()))
@@ -32,6 +34,8 @@ def main():
     cases = json.loads(args.suite.read_text()) if args.suite else []
     for case in cases:
         Settings(**(base_settings | case["settings"]))
+        if case.get("controller", args.controller) not in CONTROLLERS:
+            raise ValueError("Unknown suite controller")
     output = args.output_dir or ROOT / "outputs" / time.strftime("stopping-%Y%m%d-%H%M%S")
     output.mkdir(parents=True, exist_ok=True)
     if any(output.iterdir()):
@@ -49,12 +53,14 @@ def main():
     from isaacsim.core.utils.stage import open_stage, get_current_stage
     from isaacsim.core.utils.types import ArticulationAction
     from omni.kit.viewport.utility import get_active_viewport
-    from balance_lqr import WIPParameters, design_lqr
+    from balance_lqr import WIPParameters
 
     physical = json.loads((ROOT / "config/balance_wf.json").read_text())
     p = WIPParameters(**physical["model"])
     dt = .005
-    design = design_lqr(p, dt, [20., 10., 500., 20.], .1)
+    wheel_controller = create_controller(args.controller, p, dt)
+    selected_controller = args.controller
+    controller_selector = None
     rotation = Rotation.from_euler("y", physical["equilibrium_base_pitch_rad"])
     initial_pos = np.array([0., 0., p.radius + .001]) - rotation.apply(physical["axle_in_base"])
     q = rotation.as_quat()[[3, 0, 1, 2]]
@@ -147,7 +153,9 @@ def main():
             writer.writerows(rows)
         report = summarize(rows, cfg, reason)
         (folder / "settings.json").write_text(json.dumps(asdict(cfg), indent=2))
-        report.update({"joint_names": names, "LQR_gain": design.K.tolist(),
+        report.update({"joint_names": names,
+                       "controller": wheel_controller.metadata(),
+                       "controller_sha256": hashlib.sha256((ROOT/'scripts/stopping_controllers.py').read_bytes()).hexdigest(),
                        "case_name": state.get("case_name", "interactive"),
                        "ui_checks": state.get("ui_checks", {}),
                        "wheel_material_runtime": state.get("wheel_material_runtime"),
@@ -171,11 +179,16 @@ def main():
         print("STOPPING_RESULT", json.dumps(report), flush=True)
 
     def reset():
-        nonlocal cfg
+        nonlocal cfg, wheel_controller
         new = Settings(**{k: m.as_float for k,m in models.items()}) if models else cfg
+        name = (CONTROLLERS[controller_selector.model.get_item_value_model().as_int]
+                if controller_selector is not None else selected_controller)
+        new_controller = create_controller(name, p, dt)
         if state["rows"]:
             finish("reset_by_user")
         cfg = new
+        wheel_controller = new_controller
+        wheel_controller.reset()
         world.stop()
         mat.GetStaticFrictionAttr().Set(cfg.static_friction)
         mat.GetDynamicFrictionAttr().Set(cfg.dynamic_friction)
@@ -235,6 +248,9 @@ def main():
             with ui.VStack(spacing=8):
                 ui.Label("TRON1 WF | physical stopping + slip", height=25)
                 ui.Label("Edit values, then Reset + Run to apply.\nBrake now acts immediately; Pause retains trial state.", height=40)
+                with ui.HStack(height=25):
+                    ui.Label("Wheel controller", width=180)
+                    controller_selector = ui.ComboBox(CONTROLLERS.index(args.controller), *CONTROLLERS)
                 for key, title in fields:
                     with ui.HStack(height=25):
                         ui.Label(title, width=285)
@@ -260,6 +276,9 @@ def main():
                         case = cases.pop(0)
                         cfg = Settings(**(base_settings | case["settings"]))
                         state["case_name"] = case["name"]
+                        selected_controller = case.get("controller", args.controller)
+                        if controller_selector is not None:
+                            controller_selector.model.get_item_value_model().set_value(CONTROLLERS.index(selected_controller))
                         for key, model in models.items():
                             model.set_value(getattr(cfg, key))
                     reset()
@@ -310,12 +329,10 @@ def main():
                 vx, rate = (axle[0]-old_x)/dt, (theta-old_theta)/dt
             state["previous"] = (axle[0], theta)
             xref, vref, accel = reference(t, cfg.initial_speed, state["brake"], cfg.deceleration)
-            theta_ref = (p.coupling + p.effective_mass*p.radius)/(p.coupling*p.gravity)*accel
-            target = np.array([xref, vref, theta_ref, 0.])
-            measured = np.array([axle[0], vx, theta, rate])
-            total = -float((design.K @ (measured-target)).item()) + p.effective_mass*p.radius*accel
+            requested = wheel_controller.step(Observation(float(axle[0]), vx, theta, rate),
+                                              Reference(xref, vref, accel))
             jp, jv = robot.get_joint_positions(), robot.get_joint_velocities()
-            command = np.clip(np.full(2,total/24.), -1., 1.)
+            command = torque_to_command(requested)
             torque = motor_torque(command, jv[wheels], cfg)
             robot.apply_action(ArticulationAction(joint_efforts=torque, joint_indices=wheels))
             rolling, slip, ratio = slip_metrics(origin_v[wi], angular[wi], p.radius)
@@ -325,6 +342,7 @@ def main():
                        braking=int(t>=state["brake"]),omega_l=float(jv[wheels[0]]),omega_r=float(jv[wheels[1]]),
                        rolling_l=float(rolling[0]),rolling_r=float(rolling[1]),slip_l=float(slip[0]),slip_r=float(slip[1]),
                        slip_ratio_l=float(ratio[0]),slip_ratio_r=float(ratio[1]),normal_l=float(normal[0]),normal_r=float(normal[1]),
+                       requested_torque_l=float(requested[0]),requested_torque_r=float(requested[1]),
                        command_l=float(command[0]),command_r=float(command[1]),torque_l=float(torque[0]),torque_r=float(torque[1]))
             if not all(math.isfinite(v) for v in row.values()):
                 finish("nonfinite_state")

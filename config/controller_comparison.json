@@ -1,0 +1,6 @@
+[
+  {"name": "nominal_tracking", "controller": "lqr_tracking", "settings": {}},
+  {"name": "nominal_no_position", "controller": "lqr_no_position", "settings": {}},
+  {"name": "low_friction_tracking", "controller": "lqr_tracking", "settings": {"static_friction": 0.04, "dynamic_friction": 0.02}},
+  {"name": "low_friction_no_position", "controller": "lqr_no_position", "settings": {"static_friction": 0.04, "dynamic_friction": 0.02}}
+]

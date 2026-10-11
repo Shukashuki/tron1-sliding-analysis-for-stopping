@@ -2,7 +2,7 @@
 
 An interactive Isaac Sim experiment for TRON1 WF braking. Change the initial speed, contact friction, or actuator settings, run the same stopping maneuver, and compare travel, wheel slip, and body balance.
 
-![Interactive Isaac Sim stopping panel](results/2026-10-03-validation/gui/interface.png)
+![Interactive Isaac Sim stopping panel](results/2026-10-11-controllers/interface.png)
 
 ## Run
 
@@ -71,6 +71,39 @@ slip ratio = -slip speed / max(abs(axle speed), abs(surface speed), 0.05 m/s)
 World wheel angular velocity includes chassis motion. Slip values in the air are only kinematic differences; use the logged support forces when interpreting them. Wheel normal forces are net link-contact Z proxies. The first version uses PhysX rigid contact with static/dynamic friction; tire compliance and a calibrated tire slip curve are future modeling work.
 
 A stable stop requires at least 0.5 s with axle and wheel surface speeds below 0.05 m/s, pitch/roll below 10°, and both wheel normal-force proxies above 1 N. The trial must also finish and satisfy the same stability dwell at its end. Excessive lean terminates the trial and records failure.
+
+## Swappable wheel controllers
+
+Select the wheel controller in the GUI, then **Reset + Run**. Selection changes do not affect an active trial. The default `lqr_tracking` preserves the original control equation. `lqr_no_position` disables only its position gain: this is a position-feedback ablation, **not** a newly optimized velocity-only LQR or a guaranteed stable controller.
+
+[`stopping_controllers.py`](scripts/stopping_controllers.py) defines the simulator-independent contract: `reset()` clears controller state, `step(Observation, Reference)` returns two requested wheel-shaft torques `[left, right]` in Nm, and `metadata()` records the algorithm and gains. Observations currently contain axle position/speed and COM pitch/rate; references contain position, speed and acceleration. A future slip-aware controller will need the observation contract extended with wheel/contact measurements. Register new implementations through `create_controller()` and `CONTROLLERS`.
+
+The simulator owns sensing, the common reference, fixed-leg PD, termination, logging and motor limits. Requested torque is mapped to normalized command using the fixed nominal 12 Nm/unit, then the configurable actuator gain and limits are applied. Controllers must not bypass this common actuator path. CSV logs include both requested and applied torque; reports include controller metadata and source hash. Old archived reports retain their original schema and results.
+
+Run matched nominal and low-friction comparisons in one session:
+
+```powershell
+.\scripts\run_windows.ps1 -Headless -AutoRun -ExitAfterTrial -Suite 'D:\tron1-stopping\project\config\controller_comparison.json'
+```
+
+For one controller, use `-Controller lqr_no_position` (direct Python: `--controller lqr_no_position`). Generate overlaid trajectories and a metrics table afterward:
+
+```bash
+python scripts/compare_controllers.py /path/to/comparison-run
+```
+
+Compare stable-stop success first, then peak excursion, stop time, slip and pitch. A smaller distance from a fallen or incomplete trial is not a better stop. The supplied suite keeps settings identical within each controller pair; gains have not been independently tuned for each variant.
+
+The first four-case Isaac comparison (2026-10-11, one run per case) produced:
+
+| Controller / friction | Stable stop | Confirmed-stop displacement | Peak excursion | Stop time after brake |
+|---|---|---:|---:|---:|
+| Tracking / 0.8, 0.6 | Yes | 0.119 m | 0.271 m | 2.015 s |
+| No position gain / 0.8, 0.6 | Yes | 0.159 m | 0.270 m | 1.810 s |
+| Tracking / 0.04, 0.02 | No; fell | — | 0.600 m before fall | — |
+| No position gain / 0.04, 0.02 | No; fell | — | 0.604 m before fall | — |
+
+Removing position feedback changes settling but does not materially reduce peak excursion in this test or fix low-friction failure. [Trajectory overlay](results/2026-10-11-controllers/comparison.png) · [Metrics CSV](results/2026-10-11-controllers/comparison.csv) · [Reports](results/2026-10-11-controllers). The 21 unit tests include exact command equivalence with the original baseline equation across 100 seeded input states; the refactored nominal Isaac metrics also match the original validation.
 
 ## Where `x_ref` comes from
 
